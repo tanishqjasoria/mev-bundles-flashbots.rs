@@ -6,4 +6,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ethers-flashbots = { git = "https://github.com/tanishqjasoria/ethers-flashbots" }
+url = { version = "2.2.2", default-features = false }
+ethers-flashbots = "0.5.0"
+
+# Ethers
+ethers-core = "0.5.1"
+ethers-signers = "0.5.1"
+ethers-providers = "0.5.1"
+
+# Serialization/deserialization
+serde_json = "1"
+
+tokio = { version = "1.7.1", features = ["macros", "rt-multi-thread"] }
+ethers = "0.5.1"
+anyhow = "1.0"
