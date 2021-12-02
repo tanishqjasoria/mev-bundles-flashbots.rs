@@ -5,7 +5,7 @@ use ethers_flashbots::*;
 use std::convert::TryFrom;
 use url::Url;
 use std::env;
-
+use ethers::core::utils::rlp;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -38,28 +38,35 @@ async fn main() -> Result<()> {
         .set_simulation_block(current_block_number)
         .set_simulation_timestamp(1731851886)
         .set_block(current_block_number+1);
-    let simulated_bundle = client.inner().simulate_bundle(&bundle).await?;
-    println!("Simulated bundle: {:?}", simulated_bundle);
+    let raw_txs: Vec<Bytes> = bundle.transactions()
+        .iter()
+        .map(|tx| match tx {
+            BundleTransaction::Signed(inner) => inner.rlp(),
+            BundleTransaction::Raw(inner) => inner.clone(),
+        })
+        .collect();
+    // let simulated_bundle = client.inner().simulate_bundle(&bundle).await?;
+    println!("Simulated bundle: {:?}", raw_txs);
 
     // submitting multiple bundles to increase the probability on inclusion
-    for x in 0..10 {
-        let bundle = get_bundle_for_test(&client).await?;
-        let bundle = bundle
-            .set_block(current_block_number + x);
-        println!("Bundle Initialized");
-        println!("{}",current_block_number + x);
-        let pending_bundle = client.inner().send_bundle(&bundle).await?;
-        match pending_bundle.await {
-            Ok(bundle_hash) => println!(
-                "Bundle with hash {:?} was included in target block",
-                bundle_hash
-            ),
-            Err(PendingBundleError::BundleNotIncluded) => {
-                println!("Bundle was not included in target block.")
-            }
-            Err(e) => println!("An error occured: {}", e),
-        }
-    }
+    // for x in 0..10 {
+    //     let bundle = get_bundle_for_test(&client).await?;
+    //     let bundle = bundle
+    //         .set_block(current_block_number + x);
+    //     println!("Bundle Initialized");
+    //     println!("{}",current_block_number + x);
+    //     let pending_bundle = client.inner().send_bundle(&bundle).await?;
+    //     match pending_bundle.await {
+    //         Ok(bundle_hash) => println!(
+    //             "Bundle with hash {:?} was included in target block",
+    //             bundle_hash
+    //         ),
+    //         Err(PendingBundleError::BundleNotIncluded) => {
+    //             println!("Bundle was not included in target block.")
+    //         }
+    //         Err(e) => println!("An error occured: {}", e),
+    //     }
+    // }
 
     Ok(())
 }
